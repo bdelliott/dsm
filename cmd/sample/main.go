@@ -105,7 +105,7 @@ func main() {
 }
 
 // submit an instance of a state machine to the distributed processing machinery:
-func submitStateMachine(client * dsm.Client) {
+func submitStateMachine(client dsm.Client) {
 
 	// initialize the state machine targeting a nice grilled steak dinner:
 	grillMaster := SteakGrillState{}

@@ -18,12 +18,14 @@ const (
 )
 
 // client wrapper on etcdv3 client
-type Client struct {
+
+// TODO make this an interface and abstract out the etcd part for unit testing purposes.
+type EtcdClient struct {
 	client *clientv3.Client
 }
 
 // create a new connection to the etcd cluster
-func NewClient(url *string) *Client{
+func NewClient(url *string) *EtcdClient{
 
 	client, err := clientv3.New(clientv3.Config{
 		Endpoints:   []string{*url},
@@ -34,17 +36,17 @@ func NewClient(url *string) *Client{
 	}
 
 	log.Println("Connected to etcd cluster at ", *url)
-	return &Client{client: client}
+	return &EtcdClient{client: client}
 }
 
 // shutdown the client connection
-func (c *Client) Close() {
+func (c EtcdClient) Close() {
 	log.Println("Disconnected from etcd cluster")
 	c.client.Close()
 }
 
 // delete the given key
-func (c *Client) Delete(key string) {
+func (c EtcdClient) Delete(key string) {
 	ctx, cancel := context.WithTimeout(context.Background(), REQUEST_TIMEOUT)
 	defer cancel()
 
@@ -56,7 +58,7 @@ func (c *Client) Delete(key string) {
 
 
 // Get the value of a key
-func (c *Client) Get(key string) ([]byte, error) {
+func (c EtcdClient) Get(key string) ([]byte, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), REQUEST_TIMEOUT)
 	defer cancel()
 
@@ -73,7 +75,7 @@ func (c *Client) Get(key string) ([]byte, error) {
 }
 
 // Get values matching a given prefix - return a map of key to value
-func (c *Client) GetByPrefix(prefix string) ([][]byte, error) {
+func (c EtcdClient) GetByPrefix(prefix string) ([][]byte, error) {
 
 	ctx, cancel := context.WithTimeout(context.Background(), REQUEST_TIMEOUT)
 	defer cancel()
@@ -95,7 +97,7 @@ func (c *Client) GetByPrefix(prefix string) ([][]byte, error) {
 }
 
 // Create/acquire a shared lock with the given name.  Return true if lock was successfully acquired.
-func (c *Client) Lock(name string) (success bool, unlockFunction func()) {
+func (c EtcdClient) Lock(name string) (success bool, unlockFunction func()) {
 
 	lockName := "lock-" + name
 
@@ -130,7 +132,7 @@ func (c *Client) Lock(name string) (success bool, unlockFunction func()) {
 
 
 // Set a key, with a limited expiration
-func (c *Client) Put(key string, value string, leaseSeconds time.Duration) error {
+func (c EtcdClient) Put(key string, value string, leaseSeconds time.Duration) error {
 
 	ctx, cancel := context.WithTimeout(context.Background(), REQUEST_TIMEOUT)
 	defer cancel()
@@ -154,7 +156,7 @@ func (c *Client) Put(key string, value string, leaseSeconds time.Duration) error
 }
 
 // unlock the given lock
-func (c *Client) Unlock(unlockKey []byte) {
+func (c EtcdClient) Unlock(unlockKey []byte) {
 	lockServer := v3lock.NewLockServer(c.client)
 
 	ctx, cancel := context.WithTimeout(context.Background(), LOCK_REQUEST_TIMEOUT)
@@ -174,7 +176,7 @@ func (c *Client) Unlock(unlockKey []byte) {
 }
 
 // lease creation wrapper
-func (c *Client) newLease(secs time.Duration) clientv3.LeaseID {
+func (c EtcdClient) newLease(secs time.Duration) clientv3.LeaseID {
 
 	ctx, cancel := context.WithTimeout(context.Background(), REQUEST_TIMEOUT)
 	defer cancel()
@@ -190,7 +192,7 @@ func (c *Client) newLease(secs time.Duration) clientv3.LeaseID {
 }
 
 // lease revocation wrapper
-func (c *Client) revokeLease(leaseId clientv3.LeaseID) {
+func (c EtcdClient) revokeLease(leaseId clientv3.LeaseID) {
 
 	ctx, cancel := context.WithTimeout(context.Background(), REQUEST_TIMEOUT)
 	defer cancel()

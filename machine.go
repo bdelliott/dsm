@@ -31,10 +31,10 @@ type StateMachine struct {
 }
 
 // Submit the state machine for execution.  Return the uuid of the submitted machine.
-func (machine *StateMachine) Submit(client *Client) string {
+func (machine *StateMachine) Submit(client Client) string {
 
 	machineId := GenerateUUID()
-	machineKey := MACHINE_PREFIX + machineId
+	machineKey := getMachineKey(machineId)
 
 	machine.Key = machineKey
 	machine.Put(client)
@@ -42,7 +42,7 @@ func (machine *StateMachine) Submit(client *Client) string {
 	return machineId
 }
 
-func (machine *StateMachine) Put(client *Client) {
+func (machine *StateMachine) Put(client Client) {
 
 	machineValue := machine.serialize()
 
@@ -58,10 +58,14 @@ func Deserialize(buf []byte) *StateMachine {
 	var machine StateMachine
 	err := json.Unmarshal(buf, &machine)
 	if err != nil {
-		log.Fatal("Deserialization failure", err)
+		log.Fatal("Deserialization failure: ", err)
 	}
 	log.Print("Deserialized machine: ", machine)
 	return &machine
+}
+
+func getMachineKey(machineId string) string {
+	return MACHINE_PREFIX + machineId
 }
 
 // serialize to json for the purpose of persisting state in etcd

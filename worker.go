@@ -7,9 +7,14 @@ import (
 
 const WORKER_SLEEP_DURATION = 1 * time.Second
 
+var workerDone bool
+
+func init() {
+	workerDone = false
+}
 
 // Run a persistent worker process that polls for state machine instances that are ready to be worked
-func RunWorker(client *Client) {
+func RunWorker(client Client) {
 
 	for {
 		serializedMachines, err := client.GetByPrefix(MACHINE_PREFIX)
@@ -28,19 +33,24 @@ func RunWorker(client *Client) {
 			attemptWork(client, machines)
 		}
 
-		time.Sleep(WORKER_SLEEP_DURATION)
+		if workerDone {
+			log.Print("Worker received quit signal")
+			break
+		} else {
+			time.Sleep(WORKER_SLEEP_DURATION)
+		}
 	}
 }
 
 // Find an unlocked machine and attempt to advance its state
-func attemptWork(client *Client, machines []*StateMachine) {
+func attemptWork(client Client, machines []*StateMachine) {
 	for _, machine := range machines {
 		attemptWorkOnMachine(client, machine)
 	}
 }
 
 // Try to work on the given machine
-func attemptWorkOnMachine(client *Client, machine *StateMachine) {
+func attemptWorkOnMachine(client Client, machine *StateMachine) {
 
 	lockSuccess, unlockFunction := client.Lock(machine.Key)
 	defer unlockFunction()
@@ -61,4 +71,9 @@ func attemptWorkOnMachine(client *Client, machine *StateMachine) {
 		}
 	}
 
+}
+
+// Cause main worker loop to exit
+func KillWorker() {
+	workerDone = true
 }
