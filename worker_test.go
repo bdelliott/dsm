@@ -15,13 +15,12 @@ func TestRunWorker(t *testing.T) {
 	RegisterMachineHandler(TEST_MACHINE_TYPE, func(machine *StateMachine) bool {
 		// just advance to a new state
 		machine.State = NEW_STATE
-		return false;
+		return false
 	})
 	machineId := machine.Submit(client)
 
 	KillWorker() // (worker loop will only execute once)
 	RunWorker(client)
-
 
 	machineKey := getMachineKey(machineId)
 	serializedMachine, err := client.Get(machineKey)

@@ -84,7 +84,7 @@ func main() {
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 
 	worker := flag.Bool("worker", false, "Run a state machine worker process")
-	etcdUrl := flag.String("etcdurl", "http://localhost:2379", "URL to etcd cluster")
+	etcdUrl := flag.String("etcdurl", "http://etcd:2379", "URL to etcd cluster")
 
 	flag.Parse()
 

@@ -4,7 +4,6 @@ import "time"
 
 // contract for backend distributed state machinery to implement
 type Client interface {
-
 	Close()
 	Delete(key string)
 	Get(key string) ([]byte, error)
@@ -13,4 +12,3 @@ type Client interface {
 	Put(key string, value string, leaseSeconds time.Duration) error
 	Unlock(unlockKey []byte)
 }
-

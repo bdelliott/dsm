@@ -6,8 +6,8 @@ import (
 	"time"
 )
 
-const(
-	MACHINE_PREFIX = "machine-"
+const (
+	MACHINE_PREFIX  = "machine-"
 	MACHINE_TIMEOUT = 600 * time.Second
 )
 

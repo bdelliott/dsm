@@ -11,10 +11,10 @@ import (
 )
 
 const (
-	DIAL_TIMEOUT = 5 * time.Second
-	LOCK_DURATION = 10 * time.Second
+	DIAL_TIMEOUT         = 5 * time.Second
+	LOCK_DURATION        = 10 * time.Second
 	LOCK_REQUEST_TIMEOUT = 100 * time.Millisecond // max time to wait on a lock acquisition
-	REQUEST_TIMEOUT = 10 * time.Second
+	REQUEST_TIMEOUT      = 10 * time.Second
 )
 
 // client wrapper on etcdv3 client
@@ -25,7 +25,7 @@ type EtcdClient struct {
 }
 
 // create a new connection to the etcd cluster
-func NewClient(url *string) *EtcdClient{
+func NewClient(url *string) *EtcdClient {
 
 	client, err := clientv3.New(clientv3.Config{
 		Endpoints:   []string{*url},
@@ -33,6 +33,23 @@ func NewClient(url *string) *EtcdClient{
 	})
 	if err != nil {
 		log.Fatal("Failed to connect to etcd cluster at: ", url)
+	}
+
+	// wait for etcd endpoint to become active
+	for {
+		log.Print("Waiting for etcd availability...")
+
+		ctx, cancel := context.WithTimeout(context.Background(), REQUEST_TIMEOUT)
+		defer cancel()
+
+		statusResponse, err := client.Maintenance.Status(ctx, *url)
+
+		if err == nil {
+			log.Print("Connected to etcd version: ", statusResponse.Version)
+			break
+		} else {
+			log.Print("Failed to connect to etcd: ", err)
+		}
 	}
 
 	log.Println("Connected to etcd cluster at ", *url)
@@ -55,7 +72,6 @@ func (c EtcdClient) Delete(key string) {
 		log.Print("Failed to delete key ", key, ", err: ", err)
 	}
 }
-
 
 // Get the value of a key
 func (c EtcdClient) Get(key string) ([]byte, error) {
@@ -130,7 +146,6 @@ func (c EtcdClient) Lock(name string) (success bool, unlockFunction func()) {
 	}
 }
 
-
 // Set a key, with a limited expiration
 func (c EtcdClient) Put(key string, value string, leaseSeconds time.Duration) error {
 
@@ -161,7 +176,6 @@ func (c EtcdClient) Unlock(unlockKey []byte) {
 
 	ctx, cancel := context.WithTimeout(context.Background(), LOCK_REQUEST_TIMEOUT)
 	defer cancel()
-
 
 	unlockRequest := v3lockpb.UnlockRequest{Key: unlockKey}
 
@@ -204,4 +218,3 @@ func (c EtcdClient) revokeLease(leaseId clientv3.LeaseID) {
 		log.Print("Failed to revoke lease: ", err)
 	}
 }
-

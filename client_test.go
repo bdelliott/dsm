@@ -13,7 +13,7 @@ type TestClient struct {
 
 func (c TestClient) Close() {}
 
-func (c TestClient) Delete (key string) {}
+func (c TestClient) Delete(key string) {}
 
 func (c TestClient) Get(key string) ([]byte, error) {
 	return c.machines[key], nil
@@ -31,11 +31,11 @@ func (c TestClient) GetByPrefix(prefix string) ([][]byte, error) {
 	return results, nil
 }
 
-func (c TestClient) Lock(name string) (success bool, unlockFunction func()) { return true, func() {}}
+func (c TestClient) Lock(name string) (success bool, unlockFunction func()) { return true, func() {} }
 
 func (c TestClient) Put(key string, value string, leaseSeconds time.Duration) error {
 	c.machines[key] = []byte(value)
-	return nil;
+	return nil
 }
 
 func (c TestClient) Unlock(unlockKey []byte) {}

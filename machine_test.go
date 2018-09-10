@@ -7,7 +7,7 @@ import (
 
 const (
 	TEST_MACHINE_TYPE = "test-machine"
-	TEST_STATE = "test-state"
+	TEST_STATE        = "test-state"
 )
 
 func TestRegisterMachineHandler(t *testing.T) {

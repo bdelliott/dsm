@@ -1,0 +1,25 @@
+version: '3'
+
+services:
+
+  etcd:
+    container_name: etcd
+    image: "quay.io/coreos/etcd:v3.2.24"
+    command: /usr/local/bin/etcd -listen-client-urls http://0.0.0.0:2379 -advertise-client-urls http://0.0.0.0:2379
+    ports:
+     - "4001:4001"
+     - "2380:2380" 
+     - "2379:2379"
+
+  worker:
+    build: .
+    command: ["/go/bin/dsm", "-worker"]
+
+    depends_on:
+      - etcd
+
+  client:
+    container_name: client
+    build: .
+    depends_on:
+      - etcd
